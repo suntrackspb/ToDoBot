@@ -317,6 +317,8 @@ def More_Task(a_date):
     x = MY_DICT.get(a_date)
     for i in x:
         markup.add(types.InlineKeyboardButton(text=i[1], callback_data="['delete', '" + i[1] + "']"))
+
+    markup.add(types.InlineKeyboardButton(text='Назад', callback_data="['delback', '" + 'pass' + "']"))
     return markup
 
 
@@ -388,6 +390,14 @@ def handle_query(call):
                               reply_markup=Delete_Keyboard(),
                               parse_mode='HTML')
 
+    if (call.data.startswith("['delback'")):
+        logger.info(f'{call.message.chat.id} - CALLBACK - delback')
+        bot.edit_message_text(chat_id=call.message.chat.id,
+                              text=f'Удалите задачу нажатием на кнопку.',
+                              message_id=call.message.message_id,
+                              reply_markup=Delete_Keyboard(),
+                              parse_mode='HTML')
+
     if (call.data.startswith("['show_task'")):
         logger.info(f'{call.message.chat.id} - CALLBACK - showtask')
         keyFromCallBack = ast.literal_eval(call.data)[1]
@@ -410,22 +420,25 @@ def handle_query(call):
 
 
 @bot.message_handler(commands=['start'])
-def start(message):
-    logger.info(f'{message.chat.id} - START - {message.text}')
-    bot.send_message(message.chat.id, 'Бот запущен.', reply_markup=keyboard1)
+def start(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - START - {ms.text}')
+    bot.send_message(ms.chat.id, 'Бот запущен.', reply_markup=keyboard1)
 
 
 @bot.message_handler(commands=['help'])
-def help_msg(message):
-    logger.info(f'{message.chat.id} - HELP - {message.text}')
-    bot.send_message(message.chat.id, HELP, parse_mode='HTML', reply_markup=keyboard1)
+def help_msg(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - HELP - {ms.text}')
+    bot.send_message(ms.chat.id, HELP, parse_mode='HTML', reply_markup=keyboard1)
 
 
 @bot.message_handler(commands=['add'])
-def add(message):
-    logger.info(f'{message.chat.id} - ADD - {message.text}')
+def add(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - ADD - {ms.text}')
     try:
-        _, day, category, task = message.text.split(maxsplit=3)
+        _, day, category, task = ms.text.split(maxsplit=3)
         task = ' '.join([task])
         if category[0] != '#':
             category = '#' + category
@@ -434,71 +447,77 @@ def add(message):
         msg = 'Ошибка в формате добавления\n' \
               'Используйте /add 23-11-2020 #Категория Задача'
         logger.exception('Error ValueError')
-    bot.send_message(message.chat.id, msg)
+    bot.send_message(ms.chat.id, msg)
 
 
 @bot.message_handler(commands=['print'])
-def print_(message):
-    logger.info(f'{message.chat.id} - PRINT - {message.text}')
+def print_(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - PRINT - {ms.text}')
     if len(MY_DICT) > 1:
         msg = 'Выберите дату на которую показать задачи.'
     else:
         msg = 'У вас еще нету задач.'
-    bot.send_message(message.chat.id, msg, parse_mode='HTML', reply_markup=Show_Task_Keyboard())
+    bot.send_message(ms.chat.id, msg, parse_mode='HTML', reply_markup=Show_Task_Keyboard())
 
 
 @bot.message_handler(commands=['showall'])
-def printall_(message):
-    logger.info(f'{message.chat.id} - SHOW ALL - {message.text}')
+def printall_(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - SHOW ALL - {ms.text}')
     if len(MY_DICT) > 0:
         msg = show_all_task(MY_DICT)
     else:
         msg = 'Вы ещё не добавили задач.'
-    bot.send_message(message.chat.id, msg, parse_mode='HTML', reply_markup=keyboard1)
+    bot.send_message(ms.chat.id, msg, parse_mode='HTML', reply_markup=keyboard1)
 
 
 @bot.message_handler(commands=['category'])
-def cat_list_(message):
-    logger.info(f'{message.chat.id} - CATEGORY - {message.text}')
+def cat_list_(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - CATEGORY - {ms.text}')
     if len(MY_DICT) > 0:
         msg = 'Выберите категорю для отображения задач в ней.'
     else:
         msg = 'У вас ещё нет категорий.'
-    bot.send_message(message.chat.id, msg, reply_markup=Category_Keyboard())
+    bot.send_message(ms.chat.id, msg, reply_markup=Category_Keyboard())
 
 
 @bot.message_handler(commands=['delete'])
-def delete_(message):
-    logger.info(f'{message.chat.id} - DELETE - {message.text}')
+def delete_(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - DELETE - {ms.text}')
     msg = 'Удалите задачу нажатием на кнопку.'
-    bot.send_message(message.chat.id, msg, parse_mode='HTML', reply_markup=Delete_Keyboard())
+    bot.send_message(ms.chat.id, msg, parse_mode='HTML', reply_markup=Delete_Keyboard())
 
 
 @bot.message_handler(commands=['export'])
-def download(message):
-    logger.info(f'{message.chat.id} - EXPORT - {message.text}')
+def download(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - EXPORT - {ms.text}')
     task_dump(MY_DICT)
     doc = open('./data.pickle', 'rb')
-    bot.send_document(message.chat.id, doc)
+    bot.send_document(ms.chat.id, doc)
 
 
 @bot.message_handler(content_types=['document'])
-def handle_docs(message):
-    logger.info(f'{message.chat.id} - IMPORT')
-    file_id_info = bot.get_file(message.document.file_id)
+def handle_docs(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - IMPORT')
+    file_id_info = bot.get_file(ms.document.file_id)
     save_file(file_id_info)
     MY_DICT.update(task_load(MY_DICT))
     del_file('data.pickle')
-    bot.send_message(message.chat.id, f'Задачи импортированы')
+    bot.send_message(ms.chat.id, f'Задачи импортированы')
 
 
 # Этот хендлер отвечает за обработку голосовых команд
 
 @bot.message_handler(content_types=['voice'])
-def voice_processing(message):
-    logger.info(f'{message.chat.id} - VOICE')
+def voice_processing(ms):
+    logger.info(f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - VOICE')
     # Сохраняем голосовое сообщение на компьютер
-    file_info = bot.get_file(message.voice.file_id)
+    file_info = bot.get_file(ms.voice.file_id)
     downloaded_file = bot.download_file(file_info.file_path)
     with open('new_file.ogg', 'wb') as new_file:
         new_file.write(downloaded_file)
@@ -529,46 +548,54 @@ def voice_processing(message):
         msg = 'Ошибка в формате добавления\n' \
               'сегодня/завтра/позже Категория Задача'
         logger.exception('Error ValueError')
-    bot.send_message(message.chat.id, msg)
+    bot.send_message(ms.chat.id, msg)
 
 
 @bot.message_handler(commands=['test'])
-def random(message):
-    logger.info(f'{message.chat.id} - TEST DATA - {message.text}')
+def random(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - TEST DATA - {ms.text}')
     test()
-    bot.send_message(message.chat.id, f'Тестовые данные загружены')
+    bot.send_message(ms.chat.id, f'Тестовые данные загружены')
 
 
 @bot.message_handler(commands=['cat'])
-def cat(message):
-    logger.info(f'{message.chat.id} - CAT - {message.text}')
+def cat(ms):
+    logger.info(
+        f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - CAT - {ms.text}')
     le = choice(RANDOM_LIST)
     resend_img('https://sntrk.ru/img/cats/' + str(le) + '.jpg')
     with open('out.jpg', 'rb') as im_f:
-        bot.send_photo(message.chat.id, im_f)
+        bot.send_photo(ms.chat.id, im_f)
     if os.path.exists('out.jpg'):
         os.remove('out.jpg')
 
 
 # Сервисные команды без слеша CHAT.ID, PRINT.DICT, CLEAR.DICT, BOT.SOURCE.CODE
 @bot.message_handler(content_types=['text'])
-def send_text(message):
-    if message.text == 'service_id':
-        logger.info(f'{message.chat.id} - SERVICE - {message.text}')
-        bot.send_message(message.chat.id, message.chat.id)
-    elif message.text == 'service_dict':
-        logger.info(f'{message.chat.id} - SERVICE - {message.text}')
-        logger.info(f'{message.chat.id} - DICTIONARY - {str(MY_DICT)}')
-    elif message.text == 'service_clear':
-        logger.info(f'{message.chat.id} - SERVICE - {message.text}')
+def send_text(ms):
+    if ms.text == 'service_id':
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - SERVICE - {ms.text}')
+        bot.send_message(ms.chat.id, ms.chat.id)
+    elif ms.text == 'service_dict':
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - SERVICE - {ms.text}')
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - DICTIONARY - {str(MY_DICT)}')
+    elif ms.text == 'service_clear':
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - SERVICE - {ms.text}')
         MY_DICT.clear()
-    elif message.text == 'service_code':
-        logger.info(f'{message.chat.id} - SERVICE - {message.text}')
+    elif ms.text == 'service_code':
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - SERVICE - {ms.text}')
         doc = open('./main.py', 'rb')
-        bot.send_document(message.chat.id, doc)
+        bot.send_document(ms.chat.id, doc)
     else:
-        logger.info(f'{message.chat.id} - ERROR COMMANDS - {message.text}')
-        bot.send_message(message.chat.id, 'Ошибка, данной команды не существует, используйте /help')
+        logger.info(
+            f'{ms.chat.id}-{ms.chat.first_name}-{ms.chat.last_name}-{ms.chat.username} - ERROR COMMANDS - {ms.text}')
+        bot.send_message(ms.chat.id, 'Ошибка, данной команды не существует, используйте /help')
 
 
 bot.polling(none_stop=True)
